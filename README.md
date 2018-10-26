@@ -1,4 +1,4 @@
-# Openshift-Enovy-Istio Demo
+# Gitlab-Runner Demo
 
 This project contains 4 Springboot applications :
 
