@@ -1,0 +1,36 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <title>Customer Bill</title>
+    <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+<h1>Customer Bill</h1>
+<br/><br/>
+<div>
+    <table border="1">
+        <tr>
+            <th>Customer Id</th>
+            <th>Tariff</th>
+            <th>Period</th>
+            <th>Tax</th>
+            <th>Single Price</th>
+            <th>Net Price</th>
+            <th>Gross Price</th>
+
+        </tr>
+        <tr th:each ="bill : ${bills}">
+            <td th:utext="${bill.customerId}">...</td>
+            <td th:utext="${bill.tariff}">...</td>
+            <td th:utext="${bill.period}">...</td>
+            <td th:utext="${bill.tax}">...</td>
+            <td th:utext="${bill.singlePrice}">...</td>
+            <td th:utext="${bill.netPrice}">...</td>
+            <td th:utext="${bill.grossPrice}">...</td>
+
+        </tr>
+    </table>
+</div>
+</body>
+</html>

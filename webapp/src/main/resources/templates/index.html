@@ -1,0 +1,30 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:form="http://www.w3.org/1999/xhtml">
+<head>
+    <title>WebApp</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <script src="index.js"></script>
+    <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+    <div class="tab">
+        <button class="tablinks" onclick="openCity(event, 'Customer')">Customer</button>
+        <button class="tablinks" onclick="openCity(event, 'Bill')">Bill</button>
+    </div>
+
+    <!-- Tab content -->
+    <div id="Customer" class="tabcontent">
+        <a th:href="@{/customerList}">Show Customer</a>
+    </div>
+
+    <div id="Bill" class="tabcontent">
+        <form method="POST" action="/webapp/billList" modelAttribute="input">
+            CustomerID:<br>
+            <input type="text" name="id">
+            <br><br>
+            <input type="submit" value="Submit" />
+        </form>
+    </div>
+
+</body>
+</html>

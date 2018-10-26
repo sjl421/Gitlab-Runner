@@ -1,0 +1,72 @@
+apiVersion: v1
+kind: Template
+metadata:
+  name: telecom-cloud-bff
+  labels:
+    app: telecom-cloud-bff
+    template: telecom-cloud-bff
+    createdBy: Yassir
+
+objects:
+  
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: bff-service
+    labels:
+      app: bff-service
+    annotations:
+      openshift.io/generated-by: Yassir
+  spec:
+    ports:
+    - name: 80-tcp
+      protocol: TCP
+      port: 80
+      targetPort: 8091
+    selector:
+      app: bff
+      deploymentconfig: bff
+    type: ClusterIP
+    sessionAffinity: None
+  status:
+    loadBalancer:
+
+  
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    name: bff
+    labels:
+      app: bff
+  spec:
+    replicas: 1
+    selector:
+      app: bff
+      deploymentconfig: bff
+    template:
+      metadata:
+        labels:
+          app: bff
+          deploymentconfig: bff
+      spec:
+        containers:
+          - env:
+            - name: EAPI_SERVER
+              value: eapi-service.myproject.svc
+            image: mtr.external.otc.telekomcloud.com/yassir/bff:latest
+            name: bff
+            ports:
+              - containerPort: 8091
+                protocol: TCP
+            resources: {}
+            imagePullPolicy: Always
+            terminationMessagePath: /dev/termination-log
+            terminationMessagePolicy: File
+        imagePullSecrets:
+          - name: mtrtoken-yassir-secret
+        securityContext: {}
+    test: false
+    triggers:
+      - type: ConfigChange
+    
+

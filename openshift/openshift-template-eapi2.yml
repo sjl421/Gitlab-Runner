@@ -1,0 +1,70 @@
+apiVersion: v1
+kind: Template
+metadata:
+  name: telecom-cloud-eapi2
+  labels:
+    app: telecom-cloud-eapi2
+    template: telecom-cloud-eapi2
+    createdBy: Yassir
+
+objects:
+  
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: eapi2-service
+    labels:
+      app: eapi2-service
+    annotations:
+      openshift.io/generated-by: Yassir
+  spec:
+    ports:
+    - name: 80-tcp
+      protocol: TCP
+      port: 80
+      targetPort: 8089
+    selector:
+      app: eapi2
+      deploymentconfig: eapi2
+    type: ClusterIP
+    sessionAffinity: None
+  status:
+    loadBalancer:
+    
+    
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    name: eapi2
+    labels:
+      app: eapi2
+  spec:
+    replicas: 1
+    selector:
+      app: eapi2
+      deploymentconfig: eapi2
+    template:
+      metadata:
+        labels:
+          app: eapi2
+          deploymentconfig: eapi2
+      spec:
+        containers:
+          - image: >-
+              mtr.external.otc.telekomcloud.com/yassir/eapi2:latest
+            name: eapi2
+            ports:
+              - containerPort: 8089
+                protocol: TCP
+            resources: {}
+            imagePullPolicy: Always
+            terminationMessagePath: /dev/termination-log
+            terminationMessagePolicy: File
+        imagePullSecrets:
+          - name: mtrtoken-yassir-secret
+        securityContext: {}
+    test: false
+    triggers:
+      - type: ConfigChange
+    
+
