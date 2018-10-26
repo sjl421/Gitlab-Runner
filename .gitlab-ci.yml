@@ -1,0 +1,128 @@
+variables:
+  # application image tags
+  DOCKER_IMAGE_TAG_BFF: "bff:latest"
+  DOCKER_IMAGE_TAG_EAPI: "eapi:latest"
+  DOCKER_IMAGE_TAG_EAPI_2: "eapi2:latest"
+  DOCKER_IMAGE_TAG_SAP: "sap:latest"
+  DOCKER_IMAGE_TAG_WEB_APP: "web-app:latest"
+  
+  # application repositories
+  MTR_REPO_BFF: "yassir/bff"
+  MTR_REPO_EAPI: "yassir/e-api"
+  MTR_REPO_EAPI_2: "yassir/e-api2"
+  MTR_REPO_SAP: "yassir/sap"
+  MTR_REPO_WEB_APP: "yassir/webapp"
+  
+  IMAGE_REPO: ""
+  OPENSHIFT_URL: ""
+  OPENSHIFT_TOKEN: ""
+  
+  TEMPLATE_FILE_SAP: "${CI_PROJECT_DIR}/openshift/openshift-template-sap.yml"
+  TEMPLATE_NAME_SAP: "telecom-cloud-sap"
+  TEMPLATE_FILE_EAPI: "${CI_PROJECT_DIR}/openshift/openshift-template-eapi.yml"
+  TEMPLATE_NAME_EAPI: "telecom-cloud-eapi"
+  TEMPLATE_FILE_EAPI2: "${CI_PROJECT_DIR}/openshift/openshift-template-eapi2.yml"
+  TEMPLATE_NAME_EAPI2: "telecom-cloud-eapi2"
+  TEMPLATE_FILE_BFF: "${CI_PROJECT_DIR}/openshift/openshift-template-bff.yml"
+  TEMPLATE_NAME_BFF: "telecom-cloud-bff"
+  TEMPLATE_FILE_WEB: "${CI_PROJECT_DIR}/openshift/openshift-template-webapp.yml"
+  TEMPLATE_NAME_WEB: "telecom-cloud-webapp"
+  
+  
+stages:
+  - maven_build
+  - docker_application_build
+  - push_application_image_mtr
+  - appagile
+
+job-maven-build:
+  image: maven:latest
+  stage: maven_build
+  tags:
+    - run01_docker
+  script:
+    - echo "Building bff project with maven"
+    - cd ${CI_PROJECT_DIR}/bff 
+    - mvn clean install
+    - echo "Building e-api project with maven"
+    - cd ${CI_PROJECT_DIR}/e-api
+    - echo "Building e-api2 project with maven"
+    - cd ${CI_PROJECT_DIR}/e-api2
+    - mvn clean install
+    - echo "Building sap project with maven"
+    - cd ${CI_PROJECT_DIR}/sap
+    - mvn clean install
+    - echo "Building web-app project with maven"
+    - cd ${CI_PROJECT_DIR}/webapp
+    - mvn clean install
+  artifacts:
+    untracked: true
+    
+job-docker-application-build:
+  image: docker:stable
+  stage: docker_application_build
+  tags:
+    - run01_docker
+  script:
+    - echo "Building Docker Image for bff"
+    - cd ${CI_PROJECT_DIR}/bff
+    - docker build -t $DOCKER_IMAGE_TAG_BFF .
+    - echo "Building Docker Image for eapi"
+    - cd ${CI_PROJECT_DIR}/e-api
+    - docker build -t $DOCKER_IMAGE_TAG_EAPI .
+    - echo "Building Docker Image for eapi2"
+    - cd ${CI_PROJECT_DIR}/e-api2
+    - docker build -t $DOCKER_IMAGE_TAG_EAPI_2 .
+    - echo "Building Docker Image for sap"
+    - cd ${CI_PROJECT_DIR}/sap
+    - docker build -t $DOCKER_IMAGE_TAG_SAP .
+    - echo "Building Docker Image for webapp"
+    - cd ${CI_PROJECT_DIR}/webapp
+    - docker build -t $DOCKER_IMAGE_TAG_WEB_APP .
+  dependencies:
+    - job-maven-build
+    
+job-push-application-mtr:
+  image: docker:stable
+  stage: push_application_image_mtr
+  tags:
+    - run01_docker
+  before_script:
+    - docker login -u="\$app" -p="" $IMAGE_REPO
+  script:
+    - docker tag $DOCKER_IMAGE_TAG_BFF $IMAGE_REPO/$MTR_REPO_BFF
+    - docker push $IMAGE_REPO/$MTR_REPO_BFF
+    - docker tag $DOCKER_IMAGE_TAG_EAPI $IMAGE_REPO/$MTR_REPO_EAPI
+    - docker push $IMAGE_REPO/$MTR_REPO_EAPI
+    - docker tag $DOCKER_IMAGE_TAG_EAPI_2 $IMAGE_REPO/$MTR_REPO_EAPI_2
+    - docker push $IMAGE_REPO/$MTR_REPO_EAPI_2
+    - docker tag $DOCKER_IMAGE_TAG_SAP $IMAGE_REPO/$MTR_REPO_SAP
+    - docker push $IMAGE_REPO/$MTR_REPO_SAP
+    - docker tag $DOCKER_IMAGE_TAG_WEB_APP $IMAGE_REPO/$MTR_REPO_WEB_APP
+    - docker push $IMAGE_REPO/$MTR_REPO_WEB_APP
+  dependencies:
+    - job-docker-application-build
+    
+# for now this step is ignored.  
+.job-appagile:
+  image: ayufan/openshift-cli
+  stage: appagile
+  tags:
+    - run01_docker
+  script:
+    - oc version
+    - oc login $OPENSHIFT_URL --token=$OPENSHIFT_TOKEN
+    - oc project future-ei-3p
+    - oc create -f $TEMPLATE_FILE_SAP
+    - oc new-app $TEMPLATE_NAME_SAP
+    - oc create -f $TEMPLATE_FILE_EAPI
+    - oc new-app $TEMPLATE_NAME_EAPI
+    - oc create -f $TEMPLATE_FILE_EAPI2
+    - oc new-app $TEMPLATE_NAME_EAPI2
+    - oc create -f $TEMPLATE_FILE_BFF
+    - oc new-app $TEMPLATE_NAME_BFF
+    - oc create -f $TEMPLATE_FILE_WEB
+    - oc new-app $TEMPLATE_NAME_WEB
+
+
+    
