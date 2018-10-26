@@ -46,6 +46,7 @@ job-maven-build:
     - mvn clean install
     - echo "Building e-api project with maven"
     - cd ${CI_PROJECT_DIR}/e-api
+    - mvn clean install
     - echo "Building e-api2 project with maven"
     - cd ${CI_PROJECT_DIR}/e-api2
     - mvn clean install
